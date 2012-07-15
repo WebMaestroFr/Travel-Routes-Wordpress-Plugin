@@ -1,0 +1,19 @@
+path, polyline {
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+path {
+	stroke-width: 1;
+	stroke-opacity: 0.33;
+	fill-rule: evenodd;
+}
+polyline, circle {
+	fill: none;
+	cursor: pointer;
+}
+circle.travel-route {
+	stroke: none;
+}
+circle.travel-location {
+	stroke: black;
+}

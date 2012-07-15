@@ -1,0 +1,54 @@
+#post-travel-route .inside {
+	background: url(images/powered-by-google-on-white.png) no-repeat right bottom;
+	margin: 8px 10px;
+	padding: 0 0 24px;
+}
+#route-map {
+	width: 100%;
+	height: 288px;
+	margin: 8px 0;
+}
+#post-travel-route table {
+	border-spacing: 0;
+	width: 100%;
+	line-height: 1.4em;
+	background-color: #F1F1F1;
+	border: 1px solid #DFDFDF;
+	border-radius: 3px;
+}
+#post-travel-route th, #post-travel-route td {
+	padding: 8px;
+	text-align: center;
+}
+#route-options td {
+	padding: 8px 0;
+}
+#route-options .colorpicker {
+	position: relative;
+	text-align: left;
+}
+#route-colorpicker {
+	position: absolute;
+	bottom: 8px;
+	z-index: 999;
+	background: #fff;
+	border: 1px solid #DFDFDF;
+	border-radius: 4px;
+	padding: .2em;
+}
+#route-color {
+	border: none;
+	box-shadow: 0 0 3px #DFDFDF inset;
+}
+#route-locations tbody tr {
+	background-color: #F9F9F9;
+	cursor: move;
+}
+#route-locations tbody tr:nth-child(2n+1) {
+	background-color: #FCFCFC;
+}
+#route-locations .parents {
+	display: block;
+	text-align: left;
+	padding-bottom: 4px;
+}
