@@ -11,9 +11,13 @@ polyline, circle {
 	fill: none;
 	cursor: pointer;
 }
+polyline.dashed {
+	stroke-dasharray: 2,4;
+}
 circle.travel-route {
 	stroke: none;
 }
 circle.travel-location {
 	stroke: black;
+	fill: transparent;
 }

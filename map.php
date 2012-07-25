@@ -27,36 +27,54 @@ class TravelMap extends WP_Widget {
 	<?php echo new TravelMapVector; ?>
 	<g class="travel-routes"><?php
 		$routes = TravelRoutesPlugin::getRoutes();
-		foreach ( $routes as $post ) {
-			$route = new TravelRoute( $post->ID );
-			if ( $length = count( $route->locations ) ) {
-				$points = array();
-				foreach ( $route->locations as $i => $location ) {
-					$points[] = implode( ',', $location->points );
-					if ( !$markers[$location->term_id] ) {
-						$markers[$location->term_id] = '<circle  id="travel-location-'.$location->term_id.'" cx="'.$location->points['x'].'" cy="'.$location->points['y'].'" r="4" class="travel-location country-'.$location->country;
-						$links['locations'][$location->term_id] = str_replace( get_bloginfo( 'url' ), '', get_term_link( $location->term_id, TravelRoutesPlugin::$taxonomy ) );
+		$markers = array();
+		$singles = array();
+		foreach ( $routes as $route ) {
+			$length = count( $route->locations );
+			$points = array();
+			$countries = array();
+			foreach ( $route->locations as $i => $location ) {
+				if ( !$markers[$location->term_id] ) {
+					$markers[$location->term_id]['points'] = $location->points;
+					$markers[$location->term_id]['country'] = $location->country->code;
+					$markers[$location->term_id]['first'] = ( $i == 0 );
+					$markers[$location->term_id]['last'] = ( $i == $length - 1 );
+					$links['locations'][$location->term_id] = str_replace( get_bloginfo( 'url' ), '', get_term_link( $location->term_id, TravelRoutesPlugin::$taxonomy ) );
+					if ( !$links['countries'][$location->country->code] ) {
+						$links['countries'][$location->country->code] = str_replace( get_bloginfo( 'url' ), '', get_term_link( $location->country->term_id, TravelRoutesPlugin::$taxonomy ) );
 					}
-					$markers[$location->term_id] .= ' route-'.$route->post_id;
-					$markers[$location->term_id] .= ( $i == 0 ) ? ' first' : '';
-					$markers[$location->term_id] .= ( $i == $length - 1 ) ? ' last' : '';
-				}
-				if ( $length == 1) {
-					$singles[] = '<circle id="travel-route-'.$route->post_id.'" class="travel-route country-'.$route->locations[0]->country.'" cx="'.$route->locations[0]->points['x'].'" cy="'.$route->locations[0]->points['y'].'" r="6" style="fill:'.$route->color.'" />';
 				} else {
-					echo '<polyline id="travel-route-'.$route->post_id.'" class="travel-route'.( $route->dashed ? ' dashed' : '' ).'" points="'.implode( ' ', $points ).'" style="stroke:'.$route->color.( $route->dashed ? ';stroke-dasharray:2,4' : '' ).'" />';
+					if ( $i == 0 ) $markers[$location->term_id]['first'] = true;
+					if ( $i == $length - 1 ) $markers[$location->term_id]['last'] = true;
 				}
-				$links['routes'][$post->ID] = str_replace( get_bloginfo( 'url' ), '', get_permalink( $post->ID ) );
+				$markers[$location->term_id]['routes'][] = $route->post_id;
+				if ( $length > 1) {
+					$points[] = implode( ',', $location->points );
+					if ( !in_array( $location->country->code, $countries ) ) {
+						$countries[] = $location->country->code;
+					}
+				}
 			}
+			if ( $length == 1) {
+				$location = $route->locations[0];
+				$singles[] = '<circle id="travel-route-'.$route->post_id.'" data-post="'.$route->post_id.'" data-country="'.$location->country->code.'" class="travel-route" cx="'.$location->points['x'].'" cy="'.$location->points['y'].'" r="6" style="fill:'.$route->color.'" />';
+			} else {
+				echo '<polyline id="travel-route-'.$route->post_id.'" data-post="'.$route->post_id.'" data-country="'.implode( ' ', $countries ).'" class="travel-route'.( $route->dashed ? ' dashed' : '' ).'" points="'.implode( ' ', $points ).'" style="stroke:'.$route->color.'" />';
+			}
+			$links['routes'][$route->post_id] = str_replace( get_bloginfo( 'url' ), '', get_permalink( $route->post_id ) );
 		}
-		echo implode( '" />', $markers ).'" />'.implode( $singles );
+		foreach ( $markers as $term_id => $marker ) {
+			echo '<circle id="travel-location-'.$term_id.'" data-term="'.$term_id.'" data-post="'.implode( ' ', array_unique( $marker['routes'] ) ).'" data-country="'.$marker['country'].'" cx="'.$marker['points']['x'].'" cy="'.$marker['points']['y'].'" r="4" class="travel-location'.( $marker['first'] ? ' first' : '' ).( $marker['last'] ? ' last' : '' ).' route-'.implode( ' route-', array_unique( $marker['routes'] ) ).'" />';
+		}
+		echo implode( $singles );
 	?></g>
 </svg>
 		<?php
 		echo $after_widget;
-		wp_enqueue_script( 'travel-routes', plugins_url( 'js/display.js', __FILE__ ), array( 'jquery' ) );
+		wp_enqueue_script( 'travel-routes-display', plugins_url( 'js/display.js', __FILE__ ), array( 'jquery' ) );
+		wp_enqueue_style( 'travel-routes-style', plugins_url( 'css/display.css', __FILE__ ) );
 		$links['site'] = get_bloginfo( 'url' );
-		wp_localize_script( 'travel-routes', 'permalinks', $links );
+		wp_localize_script( 'travel-routes-display', 'permalinks', $links );
 	}
 
 	public function update( $new_instance, $old_instance ) {
@@ -70,12 +88,12 @@ class TravelMap extends WP_Widget {
 	}
 
 	public function form( $instance ) {
-		$title = isset( $instance[ 'title' ] ) ? $instance[ 'title' ] : '';
-		$version = isset( $instance[ 'version' ] ) ? $instance[ 'version' ] : 'light';
-		$height = isset( $instance[ 'height' ] ) ? $instance[ 'height' ] : 288;
-		$background = isset( $instance[ 'background' ] ) ? $instance[ 'background' ] : '#a5bfdd';
-		$stroke = isset( $instance[ 'stroke' ] ) ? $instance[ 'stroke' ] : '#818181';
-		$fill = isset( $instance[ 'fill' ] ) ? $instance[ 'fill' ] : '#f4f3f0';
+		$title = isset( $instance[ 'title' ] ) ? '' : $instance[ 'title' ];
+		$version = empty( $instance[ 'version' ] ) ? 'light' : $instance[ 'version' ];
+		$height = empty( $instance[ 'height' ] ) ? 288 : $instance[ 'height' ];
+		$background = empty( $instance[ 'background' ] ) ? '#a5bfdd' : $instance[ 'background' ];
+		$stroke = empty( $instance[ 'stroke' ] ) ? '#818181' : $instance[ 'stroke' ];
+		$fill = empty( $instance[ 'fill' ] ) ? '#f4f3f0' : $instance[ 'fill' ];
 		?>
 		<p>
 			<label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label> 

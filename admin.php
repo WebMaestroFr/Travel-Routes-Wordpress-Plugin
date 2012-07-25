@@ -7,13 +7,20 @@ class TravelRoutesAdmin {
 		register_activation_hook( dirname(__FILE__).'/travel-routes.php', array( __CLASS__, 'activate' ) );
 		// register_deactivation_hook( dirname(__FILE__).'/travel-routes.php', array( __CLASS__, 'deactivate' ) );
 		// load_plugin_textdomain( 'travel-routes', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
-		add_action( 'admin_print_styles', array( __CLASS__, 'admin_print_styles' ) );
-		add_action( 'admin_head-post.php', array( __CLASS__, 'admin_enqueue_scripts' ) );
-		add_action( 'admin_head-post-new.php', array( __CLASS__, 'admin_enqueue_scripts' ) );
+		add_action( 'admin_print_styles', array( __CLASS__, 'admin_styles' ) );
+		add_action( 'admin_head-post.php', array( __CLASS__, 'admin_scripts' ) );
+		add_action( 'admin_head-post-new.php', array( __CLASS__, 'admin_scripts' ) );
 		add_action( 'add_meta_boxes', array( __CLASS__, 'add_meta_boxes' ) );
 		add_action( 'save_post', array( __CLASS__, 'save_route' ) );
 		add_action( 'delete_term', array( __CLASS__, 'delete_location' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'error_notice' ), 0 );
+	}
+	
+	public static function activate( $network_wide = false )
+	{
+		require_once( dirname(__FILE__).'/taxonomy-metadata.php' );
+		$taxonomy_metadata = new Taxonomy_Metadata;
+		$taxonomy_metadata->activate( $network_wide );
 	}
 	
 	public static function add_meta_boxes()
@@ -21,14 +28,14 @@ class TravelRoutesAdmin {
 		add_meta_box('post-travel-route', 'Travel Route', array( __CLASS__, 'post_route_meta_box' ), 'post', 'normal', 'high' );
 	}
 	
-	public static function admin_print_styles()
+	public static function admin_styles()
 	{
 		wp_enqueue_style( 'jquery-ui', plugins_url( 'css/jquery-ui-fresh.css', __FILE__ ) );
 		wp_enqueue_style( 'farbtastic' );
 		wp_enqueue_style( 'travel-routes-admin', plugins_url( 'css/admin.css', __FILE__ ) );
 	}
 
-	public static function admin_enqueue_scripts()
+	public static function admin_scripts()
 	{
 		wp_enqueue_script( 'google-places', 'http://maps.googleapis.com/maps/api/js?libraries=places&sensor=false' );
 		wp_enqueue_script( 'jquery-ui-datepicker' );
@@ -43,12 +50,12 @@ class TravelRoutesAdmin {
 		<input type="hidden" name="post_route_meta_box_nonce" value="<?php echo wp_create_nonce(basename(__FILE__)); ?>" />
 		<table id="route-options">
 			<tr>
-				<td><label><input type="checkbox" name="route_show" <?php echo ($route->show == 'no') ? '' : 'checked="checked"'; ?> /> Show this route on the map</label></td>
+				<td><label><input type="checkbox" name="route_show" <?php echo $route->show ? 'checked="checked"' : ''; ?> /> Show this route on the map</label></td>
 				<td class="colorpicker">
 					<div id="route-colorpicker"></div>
-					<label>Color <input type="text" name="route_color" id="route-color" value="<?php echo ( $color = $route->color) ? $color : '#8c2c0f'; ?>" size="7" /></label>
+					<label>Color <input type="text" name="route_color" id="route-color" value="<?php echo ( $color = $route->color) ? $color : '#9d261d'; ?>" size="7" /></label>
 				</td>
-				<td><label><input type="checkbox" name="route_dashed" <?php echo ($route->dashed == 'yes') ? 'checked="checked"' : ''; ?> /> Dashed</label></td>
+				<td><label><input type="checkbox" name="route_dashed" <?php echo $route->dashed ? 'checked="checked"' : ''; ?> /> Dashed</label></td>
 			</tr>
 		</table>
 		<div id="route-map"></div>
@@ -101,10 +108,12 @@ class TravelRoutesAdmin {
 			$i = 0;
 			foreach ($places as $index=>$place) {
 				if ( !empty( $place ) ) {
-					$location = $route->locations[$i];
-					if ( !$location || !( $location->geocode['lat'] == $latitudes[$index] && $location->geocode['lng'] == $longitudes[$index] ) ) {
-						$term_id = self::insert_terms( $place );
-						$location = new TravelLocation( $term_id );
+					if ( !$location = $route->locations[$i] ) {
+						if ( !$location = TravelLocation::locate( $latitudes[$index], $longitudes[$index] ) ) {
+							sleep( .72 );
+							$term_id = self::insert_terms( $place );
+							$location = new TravelLocation( $term_id );
+						}
 					}
 					if ($location->term_id) {
 						if ( in_array( $location->term_id, $visited ) ) {
@@ -130,25 +139,28 @@ class TravelRoutesAdmin {
 	
 	private static function insert_terms( $place ) {
 		$datas = file_get_contents( 'http://maps.googleapis.com/maps/api/geocode/json?address='.urlencode( $place ).'&sensor=false' );
-		sleep( .72 );
 		$datas = json_decode( $datas, true );
-		// var_dump($datas);
 		if ( $datas['status'] == 'OK' ) {
 			$details = $datas['results'][0];
 			$components = array_reverse( $details['address_components'] );
-			$hierarchy = array();
 			foreach ( $components as $component ) {
 				if ( is_array( $type = $component['types'] ) ) $type = $type[0];
-				if ( !in_array( $type, array( 'postal_code', 'post_box', 'street_number', 'floor', 'room' ) ) && $long_name !== $component['long_name'] ) {
-					if ( !$term = term_exists( $component['long_name'], TravelRoutesPlugin::$taxonomy, end( $hierarchy ) ) ) {
-						$term = wp_insert_term( $component['long_name'], TravelRoutesPlugin::$taxonomy, array( 'parent' => end( $hierarchy ) ) );
+				if ( $type == 'country' ) {
+					if ( !$term = term_exists( $component['long_name'], TravelRoutesPlugin::$taxonomy, 0 ) ) {
+						$term = wp_insert_term( $component['long_name'], TravelRoutesPlugin::$taxonomy, array( 'parent' => 0 ) );
+						update_metadata('taxonomy', intval( $term['term_id'] ), 'code', $component['short_name'], true );
 					}
-					$hierarchy[] = intval( $term['term_id'] );
-					if ( $type == 'country') update_metadata('taxonomy', end( $hierarchy ), 'code', $component['short_name'], true );
+					$country = intval( $term['term_id'] );
 				}
-				$long_name = $component['long_name'];
+				
 			}
-			$term_id = end( $hierarchy );
+			
+			$place = end( $components );
+			if ( !$term = term_exists( $place['long_name'], TravelRoutesPlugin::$taxonomy, $country ) ) {
+				$term = wp_insert_term( $place['long_name'], TravelRoutesPlugin::$taxonomy, array( 'parent' => $country ) );
+			}
+			$term_id = intval( $term['term_id'] );
+			
 			update_metadata('taxonomy', $term_id, 'details', $details, true );
 			update_metadata('taxonomy', $term_id, 'dates', '', true );
 			return $term_id;

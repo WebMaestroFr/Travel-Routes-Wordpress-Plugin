@@ -50,7 +50,7 @@ Well, I don't know. This is not the topic here anyway. More "Frequently Asked Qu
 
 = 0.2 =
 * Wrapping it with nice paper.
-* Sharing it with you guys.
+* Sharing it with you guys, but still some bugs to fix !
 
 = 0.1 =
 * First draft.

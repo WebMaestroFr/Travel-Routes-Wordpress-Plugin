@@ -39,9 +39,6 @@ class TravelRoutesPlugin {
 	{
 		if ( is_admin() ) {
 			new TravelRoutesAdmin;
-		} else {
-			add_action( 'wp_print_styles', array( __CLASS__, 'print_styles' ) );
-			// add_action( 'wp_enqueue_scripts', array( __CLASS__, 'enqueue_scripts' ) );
 		}
 	    add_action( 'init', array( __CLASS__, 'init' ) );
 		add_action( 'widgets_init', array( __CLASS__, 'widgets_init' ) );
@@ -59,11 +56,6 @@ class TravelRoutesPlugin {
 		register_taxonomy( self::$taxonomy, 'post', $args_taxonomy );
 	}
 	
-	public static function print_styles()
-	{
-		wp_enqueue_style( 'travel-routes', plugins_url( 'css/display.css', __FILE__ ) );
-	}
-	
 	// public static function enqueue_scripts() {}
 	
 	public static function widgets_init() {
@@ -72,13 +64,17 @@ class TravelRoutesPlugin {
 	
 	
 	public static function getRoutes() {
-		return get_posts( array(
+		$posts = get_posts( array(
 			'numberposts'	=> -1,
-			'meta_key'		=> 'route_show',
-			'meta_value'	=> 'yes',
 			'orderby'		=> 'post_date',
 			'order'			=> 'ASC'
 		) );
+		$routes = array();
+		foreach ( $posts as $post ) {
+			$route = new TravelRoute( $post->ID );
+			if ( $route->show && count( $route->locations ) ) $routes[] = $route;
+		}
+		return $routes;
 	}
 	
 	// GET_TERM_PARENTS

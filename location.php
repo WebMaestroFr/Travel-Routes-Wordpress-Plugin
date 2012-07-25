@@ -29,19 +29,37 @@ class TravelLocation {
 				}
 				$x = ( $this->geocode['lng'] - TravelMapVector::$central_meridian ) / 360 * TravelMapVector::$circumference;
 				$y = ( 180 / M_PI * ( 5 / 4 ) * log( tan( M_PI / 4 + ( 4 / 5 ) * -$this->geocode['lat'] * M_PI / 360 ) ) ) / 360 * TravelMapVector::$circumference;
-				$x = ( $x - TravelMapVector::$bounding_box[0]['x'] ) / ( TravelMapVector::$bounding_box[1]['x'] - TravelMapVector::$bounding_box[0]['x'] ) * TravelMapVector::$map_width;
-				$y = ( $y - TravelMapVector::$bounding_box[0]['y'] ) / ( TravelMapVector::$bounding_box[1]['y'] - TravelMapVector::$bounding_box[0]['y'] ) * TravelMapVector::$map_height;
+				$x = number_format( ( $x - TravelMapVector::$bounding_box[0]['x'] ) / ( TravelMapVector::$bounding_box[1]['x'] - TravelMapVector::$bounding_box[0]['x'] ) * TravelMapVector::$map_width, 2 );
+				$y = number_format( ( $y - TravelMapVector::$bounding_box[0]['y'] ) / ( TravelMapVector::$bounding_box[1]['y'] - TravelMapVector::$bounding_box[0]['y'] ) * TravelMapVector::$map_height, 2 );
 				return array( 'x' => $x, 'y' => $y ); // ARRAY( 'x', 'y' )
 				break;
 			case 'country':
-				foreach ( $this->details['address_components'] as $component ) {
-					if ( $component['types'][0] == 'country') return $component['short_name'];
+				$parent = get_term( $this->term_id, TravelRoutesPlugin::$taxonomy );
+				while ( $parent->parent != 0 ) {
+					$term_id = intval( $parent->parent );
+					$parent = get_term( $term_id, TravelRoutesPlugin::$taxonomy);
 				}
+				return new TravelLocation( $term_id ); // $location OBJECT
 				break;
 			default:
-				// dates, details (...)
+				// dates, details, code (...)
 				return get_metadata('taxonomy', $this->term_id, $property, true);
 		}
+	}
+	
+	public static function locate( $lat, $lng ) {
+		$locations = get_terms( TravelRoutesPlugin::$taxonomy, array(
+			'hide_empty' => false,
+			'fields' => 'ids',
+			
+		));
+		foreach ($locations as $term_id) {
+			$location = new TravelLocation( $term_id );
+			if ( $location->parent->term_id != 0 && $location->geocode['lat'] == $lat && $location->geocode['lng'] == $lng ) {
+				return $location;
+			}
+		}
+		return false;
 	}
 }
 

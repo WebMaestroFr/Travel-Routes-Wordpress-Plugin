@@ -26,8 +26,15 @@ class TravelRoute {
 				ksort($locations);
 				return $locations; // ARRAY of $location OBJECTS
 				break;
+			case 'show':
+				if ( get_post_meta( $this->post_id, 'route_show', true) == 'no') return false;
+				else return true;
+				break;
+			case 'dashed':
+				if ( get_post_meta( $this->post_id, 'route_dashed', true) == 'yes') return true;
+				else return false;
+				break;
 			default:
-				// show, color, dashed
 				return get_post_meta( $this->post_id, 'route_'.$property, true);
 		}
 	}
