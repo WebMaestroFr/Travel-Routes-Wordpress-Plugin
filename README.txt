@@ -4,23 +4,20 @@ Donate link: http://webmaestro.fr/blog/2012/travel-routes-wordpress-plugin/
 Tags: travel, route, location, customizable, map
 Requires at least: 3.4
 Tested up to: 3.4.1
-Stable tag: 0
 
 [BETA] Display your travels on customizable maps !
 
 == Description ==
 
-Hi folks.
+Here is a plugin to display your travels on customizable maps. 
 
-Here is a plugin to display your travels on customizable maps. I worked a lot on it, and it's working pretty well. Today I feel like sharing it, but there is still some minor bugs to fix.
+Please <a href="http://webmaestro.fr/blog/travels/">see the demo</a>.
 
-<a href="http://embuskad.fr/new/">VIEW THE DEMO</a>
-
-After you have installed it, you will have a new taxonomy called "route_locations", and a new metabox "Travel Route" will allow you to attach different places to your post. This is using the Google API, and automatically create the new terms, regarding to their hierarchy (country > region > city ...). You can order those places randomly or by date.
+After you have installed it, you will have a new taxonomy called "Locations", and a new metabox "Travel Route" will allow you to attach different places to your post. This is using the Google API, and automatically create the new terms, regarding to their hierarchy (country > region > city ...). You can order those places randomly or by date.
 
 Then there is a widget, which is in fact the map. This map is in SVG format, and react to different actions (hover on posts and terms links...). You can edit its colors as well.
 
-I still have many things to improve as this is one of my main projects those days. Any contributor is welcome, and most of all I need feedback.
+I still have many things to improve as this is one of my main projects those days. Any contributor is welcome, and most of all: <a href="http://webmaestro.fr/blog/travel-routes-wordpress-plugin/">I need feedback</a>.
 
 Enjoy folks.
 
