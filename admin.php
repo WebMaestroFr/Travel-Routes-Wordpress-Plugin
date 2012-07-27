@@ -109,7 +109,6 @@ class TravelRoutesAdmin {
 			foreach ($places as $index=>$place) {
 				if ( !empty( $place ) ) {
 					if ( !$location = TravelLocation::locate( $latitudes[$index], $longitudes[$index] ) ) {
-						sleep( 1 );
 						$term_id = self::insert_terms( $latitudes[$index], $longitudes[$index] );
 						$location = new TravelLocation( $term_id );
 					}
@@ -137,6 +136,7 @@ class TravelRoutesAdmin {
 	
 	private static function insert_terms( $lat, $lng ) {
 		$datas = file_get_contents( 'http://maps.googleapis.com/maps/api/geocode/json?latlng='.urlencode( $lat ).','.urlencode( $lng ).'&sensor=false' );
+		sleep( 1 );
 		$datas = json_decode( $datas, true );
 		if ( $datas['status'] == 'OK' ) {
 			$details = $datas['results'][0];
