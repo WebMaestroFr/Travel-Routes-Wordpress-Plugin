@@ -108,12 +108,10 @@ class TravelRoutesAdmin {
 			$i = 0;
 			foreach ($places as $index=>$place) {
 				if ( !empty( $place ) ) {
-					if ( !$location = $route->locations[$i] ) {
-						if ( !$location = TravelLocation::locate( $latitudes[$index], $longitudes[$index] ) ) {
-							sleep( .72 );
-							$term_id = self::insert_terms( $place );
-							$location = new TravelLocation( $term_id );
-						}
+					if ( !$location = TravelLocation::locate( $latitudes[$index], $longitudes[$index] ) ) {
+						sleep( 1 );
+						$term_id = self::insert_terms( $latitudes[$index], $longitudes[$index] );
+						$location = new TravelLocation( $term_id );
 					}
 					if ($location->term_id) {
 						if ( in_array( $location->term_id, $visited ) ) {
@@ -137,8 +135,8 @@ class TravelRoutesAdmin {
 		}
 	}
 	
-	private static function insert_terms( $place ) {
-		$datas = file_get_contents( 'http://maps.googleapis.com/maps/api/geocode/json?address='.urlencode( $place ).'&sensor=false' );
+	private static function insert_terms( $lat, $lng ) {
+		$datas = file_get_contents( 'http://maps.googleapis.com/maps/api/geocode/json?latlng='.urlencode( $lat ).','.urlencode( $lng ).'&sensor=false' );
 		$datas = json_decode( $datas, true );
 		if ( $datas['status'] == 'OK' ) {
 			$details = $datas['results'][0];
@@ -151,16 +149,14 @@ class TravelRoutesAdmin {
 						update_metadata('taxonomy', intval( $term['term_id'] ), 'code', $component['short_name'], true );
 					}
 					$country = intval( $term['term_id'] );
+				} elseif ( $type == 'locality' ) {
+					$place = $component;
 				}
-				
 			}
-			
-			$place = end( $components );
 			if ( !$term = term_exists( $place['long_name'], TravelRoutesPlugin::$taxonomy, $country ) ) {
 				$term = wp_insert_term( $place['long_name'], TravelRoutesPlugin::$taxonomy, array( 'parent' => $country ) );
 			}
 			$term_id = intval( $term['term_id'] );
-			
 			update_metadata('taxonomy', $term_id, 'details', $details, true );
 			update_metadata('taxonomy', $term_id, 'dates', '', true );
 			return $term_id;

@@ -55,7 +55,7 @@ class TravelLocation {
 		));
 		foreach ($locations as $term_id) {
 			$location = new TravelLocation( $term_id );
-			if ( $location->parent->term_id != 0 && $location->geocode['lat'] == $lat && $location->geocode['lng'] == $lng ) {
+			if ( $location->parent->term_id != 0 && number_format( $location->geocode['lat'], 2 ) == number_format( $lat, 2 ) && number_format( $location->geocode['lng'], 2 ) == number_format( $lng, 2 ) ) {
 				return $location;
 			}
 		}

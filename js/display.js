@@ -29,7 +29,11 @@
 		travel.setBoxes = function () {
 			var globalBox = [];
 			travel.initial = false;
-			travel.map.box = { scale: (travel.width() / travel.map.width), x: 0, y: Math.round((travel.height() - travel.map.height) / 2 * 100) / 100 };
+			travel.map.box = {
+				scale: (travel.width() / travel.map.width),
+				x: 0
+			}
+			travel.map.box.y = Math.round((travel.height() - (travel.map.height * travel.map.box.scale)) / travel.map.box.scale / 2 * 100) / 100;
 			if (travel.routes.length) {
 				travel.routes.each(function (i, route) {
 					route.post = $(route).data('post');
@@ -187,8 +191,7 @@
 			});
 			travel.countries.each(function (i, country) {
 				// Over a term link
-					
-				if (permalinks.countries[country.code]) {
+				if (permalinks.countries && permalinks.countries[country.code]) {
 					$('a[href$="' +  permalinks.countries[country.code] + '"]').hover(function () {
 						travel.zoom(country);
 					}, function () {
