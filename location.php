@@ -49,13 +49,12 @@ class TravelLocation {
 	
 	public static function locate( $lat, $lng ) {
 		$locations = get_terms( TravelRoutesPlugin::$taxonomy, array(
-			'hide_empty' => false,
-			'fields' => 'ids',
-			
+			'get' => 'all',
+			'fields' => 'ids'
 		));
 		foreach ($locations as $term_id) {
 			$location = new TravelLocation( $term_id );
-			if ( $location->parent->term_id != 0 && number_format( $location->geocode['lat'], 2 ) == number_format( $lat, 2 ) && number_format( $location->geocode['lng'], 2 ) == number_format( $lng, 2 ) ) {
+			if ( $location->parent->term_id !== 0 && number_format( $location->geocode['lat'], 2 ) == number_format( $lat, 2 ) && number_format( $location->geocode['lng'], 2 ) == number_format( $lng, 2 ) ) {
 				return $location;
 			}
 		}

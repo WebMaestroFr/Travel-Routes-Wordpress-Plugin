@@ -1,5 +1,7 @@
 <?php
 
+// THIS IS FROM THE TAXONOMY-METADATA PLUGIN BY http://profiles.wordpress.org/mitchoyoshitaka/
+
 class Taxonomy_Metadata {
 	function __construct() {
 		add_action( 'init', array($this, 'wpdbfix') );

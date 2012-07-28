@@ -4,7 +4,7 @@
 Plugin Name: Travel Routes
 Plugin URI: http://webmaestro.fr/blog/2012/travel-routes-wordpress-plugin/
 Description: Display your posts locations on customizable maps.
-Version: 0.2
+Version: 0.3
 Author: WebMaestro.Fr
 Author URI: http://webmaestro.fr/blog/
 License:
