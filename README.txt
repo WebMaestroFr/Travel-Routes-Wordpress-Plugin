@@ -40,6 +40,9 @@ No answer neither.
 
 == Changelog ==
 
+= 0.4 =
+* Don't call Google API if known location.
+
 = 0.3 =
 * Fixed the JS bug on empty maps.
 
@@ -51,6 +54,9 @@ No answer neither.
 * First draft.
 
 == Upgrade Notice ==
+
+= 0.4 =
+* Don't call Google API if known location.
 
 = 0.3 =
 * Fixed the JS bug on empty maps.
