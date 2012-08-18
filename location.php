@@ -41,6 +41,10 @@ class TravelLocation {
 				}
 				return new TravelLocation( $term_id ); // $location OBJECT
 				break;
+			case 'details':
+				$details = get_metadata('taxonomy', $this->term_id, 'details', true);
+				return is_array( $details ) ? $details : array();
+				break;
 			default:
 				// dates, details, code (...)
 				return get_metadata('taxonomy', $this->term_id, $property, true);
