@@ -5,17 +5,21 @@ class TravelRoutesAdmin {
 	function __construct()
 	{
 		register_activation_hook( dirname(__FILE__).'/travel-routes.php', array( __CLASS__, 'activate' ) );
-		// register_deactivation_hook( dirname(__FILE__).'/travel-routes.php', array( __CLASS__, 'deactivate' ) );
-		// load_plugin_textdomain( 'travel-routes', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
+		// Soon we'll activate the language support : load_plugin_textdomain( 'travel-routes', false, dirname( plugin_basename( __FILE__ ) ) . '/lang' );
+		
 		add_action( 'admin_print_styles', array( __CLASS__, 'admin_styles' ) );
+		// Load the box's scripts only on the pages it's needed.
 		add_action( 'admin_head-post.php', array( __CLASS__, 'admin_scripts' ) );
 		add_action( 'admin_head-post-new.php', array( __CLASS__, 'admin_scripts' ) );
+		
 		add_action( 'add_meta_boxes', array( __CLASS__, 'add_meta_boxes' ) );
 		add_action( 'save_post', array( __CLASS__, 'save_route' ) );
 		add_action( 'delete_term', array( __CLASS__, 'delete_location' ) );
 		add_action( 'admin_notices', array( __CLASS__, 'error_notice' ), 0 );
 	}
 	
+	// On plugin installation, create the taxonomy metadata table.
+	// USING THE TAXONOMY-METADATA PLUGIN BY http://profiles.wordpress.org/mitchoyoshitaka/
 	public static function activate( $network_wide = false )
 	{
 		require_once( dirname(__FILE__).'/taxonomy-metadata.php' );
@@ -25,7 +29,9 @@ class TravelRoutesAdmin {
 	
 	public static function add_meta_boxes()
 	{
+		// Is it a better way to define this ? An array('post', 'page') for the post_type attribute doesn't seem to work.
 		add_meta_box('post-travel-route', 'Travel Route', array( __CLASS__, 'post_route_meta_box' ), 'post', 'normal', 'high' );
+		add_meta_box('post-travel-route', 'Travel Route', array( __CLASS__, 'post_route_meta_box' ), 'page', 'normal', 'high' );
 	}
 	
 	public static function admin_styles()
@@ -88,7 +94,7 @@ class TravelRoutesAdmin {
 			<?php } ?>
 			</tbody>
 		</table>
-		<?php  unset($route);
+		<?php
 	}
 	
 	public static function save_route( $post_id )
@@ -106,7 +112,7 @@ class TravelRoutesAdmin {
 			$visited = array();
 			$route = new TravelRoute( $post_id );
 			$i = 0;
-			foreach ($places as $index=>$place) {
+			foreach ( $places as $index=>$place ) {
 				if ( !empty( $place ) ) {
 					if ( !$location = TravelLocation::locate( $latitudes[$index], $longitudes[$index] ) ) {
 						$term_id = self::insert_terms( $latitudes[$index], $longitudes[$index] );
@@ -135,32 +141,47 @@ class TravelRoutesAdmin {
 	}
 	
 	private static function insert_terms( $lat, $lng ) {
+		// Get the Google Geocoding API results
 		$datas = file_get_contents( 'http://maps.googleapis.com/maps/api/geocode/json?latlng='.urlencode( $lat ).','.urlencode( $lng ).'&sensor=false' );
+		// Pause for a second to avoid Query Limit
 		sleep( 1 );
 		$datas = json_decode( $datas, true );
+		// Check the validity of the results
 		if ( $datas['status'] == 'OK' ) {
 			$details = $datas['results'][0];
-			$components = array_reverse( $details['address_components'] );
-			foreach ( $components as $component ) {
+			$components = array();
+			// Organise the address components by types
+			foreach ( $details['address_components'] as $component ) {
+				// The component's type can either be a string, or an array. Let's use a string (see https://developers.google.com/maps/documentation/geocoding/#JSON).
 				if ( is_array( $type = $component['types'] ) ) $type = $type[0];
-				if ( $type == 'country' ) {
-					if ( !$term = term_exists( $component['long_name'], TravelRoutesPlugin::$taxonomy, 0 ) ) {
-						$term = wp_insert_term( $component['long_name'], TravelRoutesPlugin::$taxonomy, array( 'parent' => 0 ) );
-						update_metadata('taxonomy', intval( $term['term_id'] ), 'code', $component['short_name'], true );
-					}
-					$country = intval( $term['term_id'] );
-				} elseif ( $type == 'locality' ) {
-					$place = $component;
+				// Exclude the unwanted components
+				if ( !in_array( $type, array( 'postal_code', 'post_box', 'street_number', 'floor', 'room' ) ) ) {
+					$components[$type] = $component;
 				}
 			}
-			if ( !$term = term_exists( $place['long_name'], TravelRoutesPlugin::$taxonomy, $country ) ) {
-				$term = wp_insert_term( $place['long_name'], TravelRoutesPlugin::$taxonomy, array( 'parent' => $country ) );
+			// Save the country or the highest level component
+			if ( isset( $components['country'] ) ) {
+				$parent = self::save_location( $components['country'] );
+			} else {
+				$parent = self::save_location( end( $components ) );
 			}
-			$term_id = intval( $term['term_id'] );
+			// Save the locality (city or town)
+			if ( isset( $components['locality'] ) ) {
+				$parent = self::save_location( $components['locality'], $parent );
+			}
+			// Save the lowest level component
+			$location = reset($components);
+			if ( $components['locality']['long_name'] == $location['long_name'] ) {
+				$term_id = $parent;
+			} else {
+				$term_id = self::save_location( $location, $parent );
+			}
+			// Save the details and dates related to our new lowest level term
 			update_metadata('taxonomy', $term_id, 'details', $details, true );
 			update_metadata('taxonomy', $term_id, 'dates', '', true );
 			return $term_id;
 		} else {
+			// If the results status is not OK, display an error message
 			global $post;
 			$notice = get_option( 'travel_notice' );
 			$notice[$post->ID] = 'Something is wrong with the <a href="https://developers.google.com/maps/documentation/geocoding/">Google Geocoding API</a>. The response status is : <code>'.$datas['status'].'</code>. The locations haven\'t been attached to the route.';
@@ -168,7 +189,19 @@ class TravelRoutesAdmin {
 		}
 	}
 	
+	private static function save_location( $component, $parent = 0 ) {
+		if ( !$term = term_exists( $component['long_name'], TravelRoutesPlugin::$taxonomy, $parent ) ) {
+			$term = wp_insert_term( $component['long_name'], TravelRoutesPlugin::$taxonomy, array( 'parent' => $parent ) );
+			if ( $parent == 0 ) {
+				// This location is a country, let's keep its code.
+				update_metadata( 'taxonomy', intval( $term['term_id'] ), 'code', $component['short_name'], true );
+			}
+		}
+		return intval( $term['term_id'] );
+	}
+	
 	public static function delete_location( $term ) {
+		// If the deleted term is a location, we delete the details and dates related to it
 		if ( $term['taxonomy'] == TravelRoutesPlugin::$taxonomy ) {
 			$term_id = intval( $term['term_id'] );
 			delete_metadata('taxonomy', $term_id, 'dates' );
