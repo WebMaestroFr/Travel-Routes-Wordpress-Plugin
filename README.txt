@@ -1,13 +1,13 @@
 === Travel Routes ===
 Contributors: WebMaestro.Fr
-Donate link: http://webmaestro.fr/blog/2012/travel-routes-wordpress-plugin/
+Donate link: http://webmaestro.fr/travel-routes-wordpress-plugin/
 Tags: travel, route, location, customizable, map
 Requires at least: 3.4
 Tested up to: 3.4.1
 Stable tag: 1.0
 License: GPLv2
 
-(BETA) Display your travels on customizable maps !
+Display your travels on customizable maps !
 
 == Description ==
 
@@ -15,7 +15,7 @@ Easily add geographical tags on a map when you write a post, and it will automat
 
 Use the map as a widget, and pick your own colors to customize it. It is a SVG map that react to users actions (mouse over posts and terms links, click on route line...).
 
-[See the demo](http://webmaestro.fr/blog/travels/ "Demo") !
+[See the demo](http://ouestetienne.com "Demo") !
 
 This plugin is in beta, I published it for tests, [contributions](https://github.com/WebMaestroFr/Travel-Routes-Wordpress-Plugin "GitHub") and feedback.
 
@@ -40,6 +40,11 @@ No answer neither.
 
 == Changelog ==
 
+= 1.0 =
+* Solved the main Query Limit issue.
+* Attached location is now the lowest level address component.
+* Stable enough for version 1.0 !
+
 = 0.4 =
 * Don't call Google API if known location.
 
@@ -54,6 +59,11 @@ No answer neither.
 * First draft.
 
 == Upgrade Notice ==
+
+= 0.4 =
+* Solved the main Query Limit issue.
+* Attached location is now the lowest level address component.
+* Stable enough for version 1.0 !
 
 = 0.4 =
 * Don't call Google API if known location.
