@@ -4,6 +4,13 @@ class TravelMap extends WP_Widget {
 
 	public function __construct() {
 		parent::__construct( 'travel_map', 'Travel Map', array( 'description' => __( 'Show the routes and locations of your travels on a map.' ) ) );
+		add_action('admin_print_scripts-widgets.php', array( __CLASS__, 'widget_scripts' ) );
+	}
+	
+	public function widget_scripts() {
+		wp_enqueue_script( 'jquery' );
+		wp_enqueue_script( 'farbtastic' );
+		wp_enqueue_style( 'farbtastic' );
 	}
 	
 	public function widget( $args, $instance ) {
@@ -103,18 +110,42 @@ class TravelMap extends WP_Widget {
 			<label for="<?php echo $this->get_field_id( 'height' ); ?>">Height</label> 
 			<input id="<?php echo $this->get_field_id( 'height' ); ?>" name="<?php echo $this->get_field_name( 'height' ); ?>" type="text" size="3" value="<?php echo $height; ?>" />px
 		</p>
-		<details>
-			<summary>More Options [beta]</summary>
-			<label for="<?php echo $this->get_field_id( 'background' ); ?>">Background</label> 
-			<input id="<?php echo $this->get_field_id( 'background' ); ?>" name="<?php echo $this->get_field_name( 'background' ); ?>" type="text" value="<?php echo $background; ?>" /><br />
-			<label for="<?php echo $this->get_field_id( 'stroke' ); ?>">Stroke</label> 
-			<input id="<?php echo $this->get_field_id( 'stroke' ); ?>" name="<?php echo $this->get_field_name( 'stroke' ); ?>" type="text" value="<?php echo $stroke; ?>" /><br />
-			<label for="<?php echo $this->get_field_id( 'fill' ); ?>">Fill</label> 
-			<input id="<?php echo $this->get_field_id( 'fill' ); ?>" name="<?php echo $this->get_field_name( 'fill' ); ?>" type="text" value="<?php echo $fill; ?>" /><br />
-			<label for="<?php echo $this->get_field_id( 'fill' ); ?>">Version</label>
-			<input id="<?php echo $this->get_field_id( 'version' ); ?>" name="<?php echo $this->get_field_name( 'version' ); ?>" type="text" value="<?php echo $version; ?>" />
-		</details>
-		<?php 
+		
+		<div class="travelmap-color">
+			<label for="<?php echo $this->get_field_id( 'background' ); ?>">Background</label>
+			<div class="travelmap-colorpicker"></div>
+			<input class="widefat" id="<?php echo $this->get_field_id( 'background' ); ?>" name="<?php echo $this->get_field_name( 'background' ); ?>" type="text" value="<?php echo $background; ?>" />
+		</div>
+		<div class="travelmap-color">
+			<label for="<?php echo $this->get_field_id( 'stroke' ); ?>">Stroke</label>
+			<div class="travelmap-colorpicker"></div>
+			<input class="widefat" id="<?php echo $this->get_field_id( 'stroke' ); ?>" name="<?php echo $this->get_field_name( 'stroke' ); ?>" type="text" value="<?php echo $stroke; ?>" />
+		</div>
+		<div class="travelmap-color">
+			<label for="<?php echo $this->get_field_id( 'fill' ); ?>">Fill</label>
+			<div class="travelmap-colorpicker"></div>
+			<input class="widefat" id="<?php echo $this->get_field_id( 'fill' ); ?>" name="<?php echo $this->get_field_name( 'fill' ); ?>" type="text" value="<?php echo $fill; ?>" />
+		</div>
+		
+		<?php /* <label for="<?php echo $this->get_field_id( 'fill' ); ?>">Version</label> */ ?>
+		<input id="<?php echo $this->get_field_id( 'version' ); ?>" name="<?php echo $this->get_field_name( 'version' ); ?>" type="hidden" value="<?php echo $version; ?>" />
+		
+		<script type="text/javascript">
+			(function($) {
+				$('.widget-content .travelmap-color').each(function(i, field){
+					field.picker = $(field).find('.travelmap-colorpicker');
+					field.input = $(field).find('input');
+					$(field.picker).hide().farbtastic('#' + $(field.input).attr('id'));
+					$(field.input).focus(function() {
+						$(field.picker).show('fast');
+					});
+					$(field.input).focusout(function() {
+						$(field.picker).hide('fast');
+					});
+				});
+			})(jQuery);
+		</script>
+		<?php
 	}
 
 }
