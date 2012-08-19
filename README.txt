@@ -79,13 +79,3 @@ No answer neither.
 
 = 0.3 =
 * Fixed the JS bug on empty maps.
-
-= 0.2 =
-Give me feedback fellows !
-
-= 0.3 =
-Fixed the JS bug on empty maps.
-
-== Known issues ==
-
-An OVER_QUERY_LIMIT error from the [Google Geocoding API](https://developers.google.com/maps/documentation/geocoding/ "Google Geocoding API") is showing up way too often. If any contributor could [take a look at the insert_term() function](https://github.com/WebMaestroFr/Travel-Routes-Wordpress-Plugin/blob/master/admin.php#LC138 "Bug"), that would be awesome.
