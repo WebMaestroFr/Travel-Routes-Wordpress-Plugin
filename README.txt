@@ -15,9 +15,11 @@ Easily add geographical tags on a map when you write a post, and it will automat
 
 Use the map as a widget, and pick your own colors to customize it. It is a SVG map that react to users actions (mouse over posts and terms links, click on route line...).
 
+Ask your questions on [the plugin page](http://webmaestro.fr/travel-routes-wordpress-plugin/ "Plugin Page").
+
 [See the demo](http://ouestetienne.com "Demo") !
 
-This plugin is in beta, I published it for tests, [contributions](https://github.com/WebMaestroFr/Travel-Routes-Wordpress-Plugin "GitHub") and feedback.
+This plugin is open for [contributions](https://github.com/WebMaestroFr/Travel-Routes-Wordpress-Plugin "GitHub").
 
 == Installation ==
 
@@ -36,7 +38,8 @@ No answer neither.
 == Screenshots ==
 
 1. Easily add geographical tags on a map when you write a post, and it will automatically create new countries and localities terms. You can also order those locations randomly or by date to define your routes.
-2. Use the map as a widget, and pick your own colors to customize it. It is a SVG map that react to users actions (mouse over posts and terms links, click on route line...).</a>.
+2. Use the map as a widget, and pick your own colors to customize it.
+3. It is a SVG map that react to users actions (mouse over posts and terms links, click on route line...).
 
 == Changelog ==
 
