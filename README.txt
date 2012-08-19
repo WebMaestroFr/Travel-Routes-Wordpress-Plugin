@@ -4,7 +4,7 @@ Donate link: http://webmaestro.fr/travel-routes-wordpress-plugin/
 Tags: travel, route, location, customizable, map
 Requires at least: 3.4
 Tested up to: 3.4.1
-Stable tag: 1.0
+Stable tag: 1.1
 License: GPLv2
 
 Display your travels on customizable maps !
@@ -43,6 +43,9 @@ No answer neither.
 
 == Changelog ==
 
+= 1.1 =
+* Only keep interesting components (avoid unwanted street addresses).
+
 = 1.0 =
 * Solved the main Query Limit issue.
 * Attached location is now the lowest level address component.
@@ -63,7 +66,10 @@ No answer neither.
 
 == Upgrade Notice ==
 
-= 0.4 =
+= 1.1 =
+* Only keep interesting components (avoid unwanted street addresses).
+
+= 1.0 =
 * Solved the main Query Limit issue.
 * Attached location is now the lowest level address component.
 * Stable enough for version 1.0 !
