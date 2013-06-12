@@ -1,3 +1,7 @@
 .travel-routes-map {
 	display: block;
+	overflow: hidden;
+}
+.travel-routes-map .svg {
+	overflow: hidden;
 }
